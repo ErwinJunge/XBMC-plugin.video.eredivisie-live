@@ -24,6 +24,7 @@ import xbmcgui
 import xbmcaddon
 import sys
 import urllib2
+import urllib
 import re
 
 link_re = re.compile(r'<a.*?/a>', re.S)
@@ -54,7 +55,7 @@ def get_params():
   return param
 
 def addFilterDir(name, filterString):
-  u=sys.argv[0]+"?filter="+filterString
+  u=sys.argv[0]+"?module="+filterString
   liz=xbmcgui.ListItem(name)
   xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
 
@@ -79,7 +80,7 @@ def get_videos(links):
 
 def get_bitrates(url):
   results = []
-  playlist_url = playlist_re.search(urllib2.urlopen(url).read()).group(1)
+  playlist_url = playlist_re.search(urllib2.urlopen(urllib.unquote(url)).read()).group(1)
   playlist = urllib2.urlopen(playlist_url).readlines()
   bandwidth_found = False
   for line in playlist:
@@ -98,7 +99,7 @@ def addVideoItem(item):
 
 def addVideoLink(item):
   u=item['location']
-  liz=xbmcgui.ListItem(item['name'], thumbnailImage=None)
+  liz=xbmcgui.ListItem(item['name'])
   xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=u, listitem=liz, isFolder=False)
 
 def get_next_page(links):
@@ -112,7 +113,7 @@ def listVideoItems(url):
   next_page={'location': url}
   items=[]
   while next_page and len(items)<number_of_items:
-    links = link_re.findall(urllib2.urlopen(next_page['location']).read())
+    links = link_re.findall(urllib2.urlopen(urllib.unquote(next_page['location'])).read())
     items += get_videos(links)
     next_page = get_next_page(links)
   for item in items:
@@ -124,13 +125,13 @@ __settings__ = xbmcaddon.Addon(id='plugin.video.eredivisie-live')
 __language__ = __settings__.getLocalizedString
 params=get_params() # First, get the parameters
 
-if 'filter' in params: # Filter chosen, load items
-  if params['filter']:
-    items = get_filter_list(params['filter'])
+if 'module' in params: # Filter chosen, load items
+  if params['module'] == 'all':
+    listVideoItems(base_url+'/video')
+  else:
+    items = get_filter_list(params['module'])
     for item in items:
       addListingDir(item)
-  else:
-    listVideoItems(base_url+'/video')
 
 elif 'listing' in params: # Listing mode
   listVideoItems(params['listing'])
@@ -141,7 +142,7 @@ elif 'item' in params: # Item selected, show bitrate options
     addVideoLink(item)
 
 else: # First entry, show main listing
-  addFilterDir(__language__(30000), '')
+  addFilterDir(__language__(30000), 'all')
   addFilterDir(__language__(30001), 'competition')
   addFilterDir(__language__(30002), 'club')
   addFilterDir(__language__(30003), 'category')
