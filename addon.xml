@@ -17,5 +17,6 @@
     <description lang="en">Watch videos from Eredivisie Live. For feature requests and bug reports: erwin@junge.nl</description>
     <description lang="nl">Bekijk videos van Eredivisie Live. Voor functie verzoeken en het rapporteren van bugs: erwin@junge.nl</description>
     <platform>all</platform>
+    <language>nl</language>
   </extension>
 </addon>
